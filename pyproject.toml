@@ -1,0 +1,50 @@
+[build-system]
+requires = ["hatchling==1.27.0"]
+build-backend = "hatchling.build"
+
+[project]
+name = "macrostress-core"
+version = "0.3.0"
+description = "Stress test: LLM scenario, calculation, MCP-grounded recommendations"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+  "numpy==2.4.4",
+  "scipy==1.17.1",
+  "pydantic==2.12.5",
+  "langgraph==1.0.10",
+  "langgraph-checkpoint-postgres==3.0.4",
+  "langgraph-checkpoint-sqlite==3.0.3",
+  "psycopg[binary,pool]==3.3.3",
+  "sqlalchemy==2.0.53",
+  "alembic==1.20.0",
+  "fastapi==0.141.1",
+  "uvicorn==0.53.0",
+  "fastmcp==2.14.7",
+  "httpx==0.28.1",
+  "streamlit==1.64.0",
+]
+
+[dependency-groups]
+dev = [
+    "graphifyy==0.9.67",
+    "pytest==8.4.2",
+    "ruff==0.12.12",
+]
+
+[project.scripts]
+msa-api = "msa.__main__:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/msa"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src", "."]
+addopts = "-ra"
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]

@@ -1,0 +1,20 @@
+# Only runtime sources and dependency manifests enter the build context.
+**
+!Dockerfile
+!.dockerignore
+!pyproject.toml
+!uv.lock
+!src/
+!src/**
+!migrations/
+!migrations/**
+!demo/
+!demo/**
+!ui/
+!ui/**
+!scripts/
+!scripts/rehearse.py
+**/__pycache__/
+**/*.pyc
+**/.env
+**/.env.*

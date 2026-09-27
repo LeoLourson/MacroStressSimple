@@ -1,0 +1,74 @@
+name: macrostress
+
+services:
+  db:
+    image: postgres:17-bookworm
+    environment:
+      POSTGRES_USER: msa
+      POSTGRES_DB: msa_product
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U msa -d msa_product"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 10s
+    restart: unless-stopped
+
+  api:
+    image: macrostress-core:local
+    build: .
+    environment:
+      - MSA_DATABASE_URL=postgresql://msa:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}@db:5432/msa_product
+      - MSA_LLM_PROVIDER=${MSA_LLM_PROVIDER:-mock}
+      # Unset optional values stay absent, so provider defaults still apply.
+      - MSA_LLM_BASE_URL
+      - MSA_LLM_MODEL
+      - MSA_LLM_JSON_MODE
+      - MSA_LLM_TIMEOUT
+      - MSA_LLM_MAX_TOKENS
+      - MSA_LLM_API_KEY
+      - DEEPSEEK_API_KEY
+      - VLLM_API_KEY
+      - VLLM_SERVED_MODEL_NAME
+      - MSA_ON_PREM_HOSTS
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    ports:
+      - "127.0.0.1:${MSA_API_PORT:-8091}:8091"
+    depends_on:
+      db:
+        condition: service_healthy
+        restart: true
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8091/health', timeout=3)"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+    restart: unless-stopped
+
+  ui:
+    image: macrostress-core:local
+    build: .
+    command: ["streamlit", "run", "ui/app.py", "--server.address=0.0.0.0", "--server.port=8501", "--server.headless=true", "--browser.gatherUsageStats=false"]
+    environment:
+      MSA_API_URL: http://api:8091
+    ports:
+      - "127.0.0.1:${MSA_UI_PORT:-8501}:8501"
+    depends_on:
+      api:
+        condition: service_healthy
+        restart: true
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8501/_stcore/health', timeout=3)"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 15s
+    restart: unless-stopped
+
+volumes:
+  postgres-data:
