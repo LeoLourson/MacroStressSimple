@@ -53,8 +53,7 @@ macrostress-core/
 │   └── test_ui.py               # Полный путь через формы
 ├── docs/
 │   ├── architecture.md          # Поток данных и HTTP
-│   ├── asset-types.md           # Формулы и границы модели
-│   ├── audit.md                 # Что исключено из кейса
+│   ├── asset-types.md           # Формулы и границы модели 
 │   └── structure.md             # Карта файлов и зависимостей
 ├── .streamlit/config.toml       # Тема и локальный сервер интерфейса
 ├── msa.ps1                      # Единая команда управления стендом
